@@ -2,7 +2,6 @@
 const test = require('ava')
 const fetch = require('node-fetch')
 const { execSync, spawn } = require('child_process')
-const path = require('path')
 
 let serverProcess
 
@@ -21,8 +20,26 @@ test.before(async t => {
     stdio: 'ignore' // Suppress output for clean test logs
   })
 
-  // Give the server a moment to start up.
-  await new Promise(resolve => setTimeout(resolve, 3000)) // Increased delay for PM2/server startup
+  // Wait for the server to be ready by polling the health endpoint
+  const maxWaitMs = 10000; // 10 seconds timeout
+  const pollIntervalMs = 250;
+  const start = Date.now();
+  let ready = false;
+  while (Date.now() - start < maxWaitMs) {
+    try {
+      const res = await fetch('http://127.0.0.1:3000/');
+      if (res.ok) {
+        ready = true;
+        break;
+      }
+    } catch (e) {
+      // Ignore errors, server may not be up yet
+    }
+    await new Promise(resolve => setTimeout(resolve, pollIntervalMs));
+  }
+  if (!ready) {
+    t.fail('Server did not become ready in time');
+  }
 
   // Optional: Check if PM2 process is actually running (more robust)
   // try {

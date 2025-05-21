@@ -81,7 +81,10 @@ function handleRequest(req, res) {
   fn(validatedParams)((result) => {
     res.json(result);
   }, (err) => {
-    res.status(err.status || 500).send(err);
+    // Log full error details for debugging
+    console.error('Function execution error:', err);
+    // Send only a generic error message to the client
+    res.status(err.status || 500).json({ error: 'Internal Server Error' });
   });
 }
 
