@@ -6,11 +6,25 @@
  */
 module.exports = (params) => (onSuccess, onError) => {
   try {
-    // Validate required parameters
-    if (!params) {
-      return onError({
-        error: 'Missing parameters',
+    // Ensure error handler is a function before using it
+    const safeErrorHandler = typeof onError === 'function' ? onError : (err) => {
+      console.error('Error handler not provided:', err);
+      throw new Error(err.error || 'Internal error');
+    };
+
+    // Validate required parameters - check if null, undefined, or empty object
+    if (!params || (typeof params === 'object' && Object.keys(params).length === 0)) {
+      return safeErrorHandler({
+        error: 'Missing or empty parameters',
         status: 400
+      });
+    }
+
+    // Verify the success callback is a function
+    if (typeof onSuccess !== 'function') {
+      return safeErrorHandler({
+        error: 'Invalid success callback',
+        status: 500
       });
     }
     
@@ -22,7 +36,7 @@ module.exports = (params) => (onSuccess, onError) => {
   } catch (error) {
     // Handle any errors and pass them to the error callback
     console.error('Error processing request:', error);
-    return onError({
+    return (typeof onError === 'function' ? onError : console.error)({
       error: error.message || 'Internal server error',
       status: 500
     });
@@ -43,13 +57,28 @@ function processParams(params) {
     message: 'Request processed successfully'
   };
   
+  // Convert string parameters to numbers if needed (common with HTTP requests)
+  let numA, numB;
+  if (params.a !== undefined) {
+    numA = Number(params.a);
+  }
+  if (params.b !== undefined) {
+    numB = Number(params.b);
+  }
+  
   // Add any custom logic here based on specific parameters
-  if (params.operation === 'add' && typeof params.a === 'number' && typeof params.b === 'number') {
-    result.result = params.a + params.b;
-  } else if (params.operation === 'multiply' && typeof params.a === 'number' && typeof params.b === 'number') {
-    result.result = params.a * params.b;
+  if (params.operation === 'add' && !isNaN(numA) && !isNaN(numB)) {
+    result.result = numA + numB;
+  } else if (params.operation === 'multiply' && !isNaN(numA) && !isNaN(numB)) {
+    result.result = numA * numB;
   } else if (params.name) {
     result.greeting = `Hello, ${params.name}!`;
+  } else if (params.operation) {
+    // Handle unsupported or invalid operations
+    result.error = `Unsupported operation: ${params.operation}`;
+    result.validOperations = ['add', 'multiply'];
+    result.success = false;
+    result.message = 'Operation failed';
   }
   
   return result;
