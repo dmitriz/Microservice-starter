@@ -17,6 +17,8 @@ if ! [[ $microservice_name =~ ^[a-zA-Z0-9_-]+$ ]]; then
 fi
 
 template_dir="./templates"
+# Convert to absolute path to avoid issues when changing directories
+template_dir_abs="$(cd "$template_dir" && pwd)"
 
 # Check if the template directory exists.
 if [ ! -d "$template_dir" ]; then
@@ -33,13 +35,13 @@ fi
 
 # Create the project folder.
 mkdir "$microservice_name"
-cd "$microservice_name"
+cd "$microservice_name" || { echo "Failed to change directory to $microservice_name"; exit 1; }
 
 # Copy all template files from the templates directory to the new project root.
 echo "Copying template files..."
 
-# Copy all files including hidden files like .gitignore
-cp -r "$template_dir"/* "$template_dir"/.[!.]* . 2>/dev/null || :
+# Copy all files including hidden files like .gitignore using the absolute path
+cp -r "$template_dir_abs"/* "$template_dir_abs"/.[!.]* . 2>/dev/null || :
 
 # Verify that essential files were copied
 if [ ! -f "functions.js" ] || [ ! -f "server.js" ]; then
@@ -56,8 +58,14 @@ touch .env
 # we don't need to modify it - it already has the right scripts
 # Just update the microservice name in the start script
 if [ -f "package.json" ]; then
-  # Replace 'your-microservice-name' with the actual microservice name in package.json
-  sed -i "s/your-microservice-name/$microservice_name/g" package.json
+  # Check OS type to use the correct sed syntax (BSD/macOS vs GNU/Linux)
+  if [[ "$OSTYPE" == "darwin"* ]]; then
+    # macOS/BSD sed requires an empty string as extension parameter
+    sed -i '' "s/your-microservice-name/$microservice_name/g" package.json
+  else
+    # GNU sed (Linux) syntax
+    sed -i "s/your-microservice-name/$microservice_name/g" package.json
+  fi
 fi
 
 echo ""

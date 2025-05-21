@@ -45,3 +45,4 @@ test("Should handle null params with error", (t) => {
     t.is(err.status, 400)
   })
 })
+
