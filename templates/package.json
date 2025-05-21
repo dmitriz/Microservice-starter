@@ -1,0 +1,22 @@
+{
+  "name": "your-microservice-name",
+  "version": "1.0.0",
+  "description": "A Node.js microservice using cloud function pattern.",
+  "main": "server.js",
+  "scripts": {
+    "start": "pm2 start server.js --name 'your-microservice-name'",
+    "test": "ava",
+    "tw": "ava --watch",
+    "dev": "nodemon server.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "ava": "^6.1.1",
+    "nodemon": "^3.1.0",
+    "pm2": "^5.3.1",
+    "express": "^4.19.2",
+    "node-fetch": "^3.3.2"
+  }
+}

@@ -35,16 +35,11 @@ fi
 mkdir "$microservice_name"
 cd "$microservice_name"
 
-# Copy only the necessary template files, excluding hidden files, version control files, and temp files.
+# Copy all template files from the templates directory to the new project root.
 echo "Copying template files..."
 
-# Use find to selectively copy only relevant files based on extension
-# This excludes hidden files (.git, .DS_Store, etc.), temporary files, and other unwanted files
-find "$template_dir" -type f \( -name "*.js" -o -name "*.json" -o -name "*.md" \) -not -path "*/\.*" | while read file; do
-  filename=$(basename "$file")
-  echo "- Copying $filename"
-  cp "$file" .
-done
+# Copy all files including hidden files like .gitignore
+cp -r "$template_dir"/* "$template_dir"/.[!.]* . 2>/dev/null || :
 
 # Verify that essential files were copied
 if [ ! -f "functions.js" ] || [ ! -f "server.js" ]; then
@@ -54,31 +49,21 @@ if [ ! -f "functions.js" ] || [ ! -f "server.js" ]; then
   exit 1
 fi
 
-# Initialize a new npm project.
-npm init -y
+# Create the .env file for environment variables (local, non-sensitive)
+touch .env
 
-# Add npm scripts to package.json.
-# This uses a temporary file approach which is more portable across different versions of sed
-# Get the second-to-last line of package.json (should be before the closing brace)
-line_count=$(wc -l < package.json)
-head -n $((line_count - 1)) package.json > temp.json
-# Append our scripts section
-cat << 'EOF' >> temp.json
-  "scripts": {
-    "start": "pm2 start server.js",
-    "test": "ava",
-    "tw": "ava --watch",
-    "dev": "nodemon server.js"
-  },
-}
-EOF
-# Replace the original package.json with our modified version
-mv temp.json package.json
+# Since we're using the package.json from templates, 
+# we don't need to modify it - it already has the right scripts
+# Just update the microservice name in the start script
+if [ -f "package.json" ]; then
+  # Replace 'your-microservice-name' with the actual microservice name in package.json
+  sed -i "s/your-microservice-name/$microservice_name/g" package.json
+fi
 
+echo ""
 echo "Microservice '$microservice_name' created successfully!"
 echo "Next steps:"
-echo "  1. cd $microservice_name"
-echo "  2. npm install express"
-echo "  3. npm install ava pm2 nodemon --save-dev"
-echo "  4. npm run dev (for development)"
-echo "  5. npm test (for testing)"
+echo "1. Change into the new directory: cd $microservice_name"
+echo "2. Install dependencies: npm install"
+echo "3. Start development: npm run dev or npm start"
+echo "4. Run tests: npm test or npm run tw"
