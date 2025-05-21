@@ -7,7 +7,14 @@ const fn = require('./functions.js');
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Helper function to validate and sanitize input
+/**
+ * Validates and sanitizes input parameters for supported operations.
+ *
+ * Checks the presence and validity of the `operation` parameter (must be 'add' or 'multiply'), ensures required numeric parameters `a` and `b` are provided and valid for math operations, and validates the optional `name` parameter as a non-empty string trimmed and limited to 50 characters.
+ *
+ * @param {object} query - The input parameters to validate, typically from a request.
+ * @returns {{ validatedParams: object, errors: string[] }} An object containing sanitized parameters and an array of validation error messages, if any.
+ */
 function validateInput(query) {
   const validatedParams = {};
   const errors = [];
@@ -62,7 +69,11 @@ function validateInput(query) {
   return { validatedParams, errors };
 }
 
-// Common request handler function for both GET and POST
+/**
+ * Handles incoming GET and POST requests by validating input, invoking the main operation, and returning the result or error response.
+ *
+ * Extracts input parameters from the request, validates and sanitizes them, and calls the main function with the validated data. Responds with a JSON result on success or an error message with appropriate HTTP status on failure.
+ */
 function handleRequest(req, res) {
   // Use query params for GET and body for POST
   const inputData = req.method === 'GET' ? req.query : req.body;

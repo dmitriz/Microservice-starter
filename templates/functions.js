@@ -44,9 +44,12 @@ module.exports = (params) => (onSuccess, onError) => {
 };
 
 /**
- * Process the input parameters and return a result
- * @param {Object} params - Input parameters to process
- * @returns {Object} - Processed result
+ * Processes input parameters to perform arithmetic operations or generate a greeting.
+ *
+ * If `operation` is `"add"` or `"multiply"` and both `a` and `b` are valid numbers, returns the computed result. If `name` is provided, includes a greeting message. Unsupported operations result in an error message and a list of valid operations.
+ *
+ * @param {Object} params - Input parameters, which may include `a`, `b`, `operation`, and `name`.
+ * @returns {Object} An object containing the processing result, timestamp, original parameters, and status information.
  */
 function processParams(params) {
   // Example implementation - replace with your actual business logic
